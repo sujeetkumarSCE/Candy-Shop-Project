@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candy Shop</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        /* Add your CSS styles here */
+        #candy-list {
+            list-style: none;
+            padding: 0;
+        }
+        .candy-item {
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .quantity-buttons button {
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div>
+        <label for="candyName">Candy Name:</label>
+        <input type="text" id="candyName" />
+        <label for="description">Description:</label>
+        <input type="text" id="description" />
+        <label for="price">Price:</label>
+        <input type="number" id="price" />
+        <label for="quantity">Quantity:</label>
+        <input type="number" id="quantity" />
+        <button onclick="addItem()">Add Item</button>
+    </div>
+
+    <ul id="candy-list"></ul>
+
+    <script>
+        // Function to fetch data from local storage and display it on the page
+        function fetchLocalDataAndDisplay() {
+            const localData = JSON.parse(localStorage.getItem('candies')) || [];
+            localData.forEach((candy) => {
+                displayCandy(candy);
+            });
+        }
+
+        // Function to fetch data from the server and display it on the page
+        async function fetchServerDataAndDisplay() {
+            try {
+                const response = await axios.get("https://crudcrud.com/api/bb24c0f1692846ceb28e2821efca449d/appointmentdata");
+                response.data.forEach((candy) => {
+                    displayCandy(candy);
+                });
+            } catch (error) {
+                console.log(error);
+            }
+        }
+
+        // Function to display candy details on the screen
+        function displayCandy(candy) {
+            const candyListContainer = document.getElementById('candy-list');
+            const listItem = document.createElement('li');
+            listItem.classList.add('candy-item');
+            
+            // Create buttons for quantity update
+            const quantityButtons = document.createElement('div');
+            quantityButtons.classList.add('quantity-buttons');
+            for (let i = 1; i <= 3; i++) {
+                const button = document.createElement('button');
+                button.textContent = `Add ${i}`;
+                button.addEventListener('click', function () {
+                    decreaseQuantity(candy, i);
+                });
+                quantityButtons.appendChild(button);
+            }
+
+            // Display candy details and quantity buttons
+            listItem.textContent = `Candy: ${candy.candyName}, Description: ${candy.description}, Price: $${candy.price}, Quantity: ${candy.quantity}`;
+            listItem.appendChild(quantityButtons);
+            candyListContainer.appendChild(listItem);
+        }
+
+        // Call the function to fetch local data and server data when the page loads
+        window.onload = function () {
+            fetchLocalDataAndDisplay();
+            fetchServerDataAndDisplay();
+        };
+
+        // Function to add candy to the list and save to local storage and the server
+        function addItem() {
+            const candyName = document.getElementById('candyName').value;
+            const description = document.getElementById('description').value;
+            const price = document.getElementById('price').value;
+            const quantity = document.getElementById('quantity').value;
+
+            if (!candyName || !description || !price || !quantity) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            const candyItem = {
+                candyName,
+                description,
+                price,
+                quantity
+            };
+
+            // Save to local storage
+            const localData = JSON.parse(localStorage.getItem('candies')) || [];
+            localData.push(candyItem);
+            localStorage.setItem('candies', JSON.stringify(localData));
+
+            // Save to the server
+            axios.post("https://crudcrud.com/api/bb24c0f1692846ceb28e2821efca449d/appointmentdata", candyItem)
+                .then((response) => {
+                    console.log(response);
+                    
+                    // Update the UI
+                    displayCandy(candyItem);
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+        }
+
+        // Function to decrease candy quantity
+        function decreaseQuantity(candy, amount) {
+            if (candy && candy.quantity >= amount) {
+                candy.quantity -= amount;
+
+                // Update the local storage
+                const localData = JSON.parse(localStorage.getItem('candies')) || [];
+                const updatedLocalData = localData.map((item) => {
+                    if (item.candyName === candy.candyName) {
+                        return { ...item, quantity: candy.quantity };
+                    }
+                    return item;
+                });
+                localStorage.setItem('candies', JSON.stringify(updatedLocalData));
+
+                // Update the server
+                axios.put(`https://crudcrud.com/api/bb24c0f1692846ceb28e2821efca449d/appointmentdata/${candy._id}`, { quantity: candy.quantity })
+                    .then((response) => {
+                        console.log(response);
+
+                        // Update the UI
+                        clearAndFetchData();
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                    });
+            }
+        }
+
+        // Function to clear the UI and fetch updated data
+        function clearAndFetchData() {
+            const candyListContainer = document.getElementById('candy-list');
+            candyListContainer.innerHTML = ''; // Clear the existing data
+            fetchLocalDataAndDisplay(); // Fetch and display the updated data
+        }
+    </script>
+</body>
+</html>
