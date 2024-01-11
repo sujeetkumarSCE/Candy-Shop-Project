@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+     <!-- This is the actual correct code for candy shop project; -->
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form onsubmit="submitHandler(event)">
+        <label>Candy Name:</label>
+        <input type="text" id="candyName" />
+        <label>Description:</label>
+        <input type="text" id="description" />
+        <label>Price:</label>
+        <input type="number" id="price" />
+        <label>Quantity:</label>
+        <input type="number" id="quantity" />
+        <button type="submit">Add Item</button>
+    </form>
+
+    <ul id="listOfItems"></ul>
+
+    <script src="candy.js"> </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+</body>
+</html>
+
+
